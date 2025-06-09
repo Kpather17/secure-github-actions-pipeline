@@ -1,0 +1,108 @@
+name: 🛡️ Secure CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    name: 🔍 Linting
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install flake8
+        run: |
+          pip install flake8
+
+      - name: Run flake8
+        run: |
+          flake8 app.py
+
+  test:
+    runs-on: ubuntu-latest
+    name: 🧪 Unit Testing
+    needs: lint
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install pytest
+        run: |
+          pip install pytest
+
+      - name: Run tests
+        run: |
+          python -m pytest --pyargs app.py
+
+  audit:
+    runs-on: ubuntu-latest
+    name: 🔍 Dependency Audit
+    needs: test
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install pip-audit
+        run: |
+          pip install pip-audit
+
+      - name: Audit dependencies
+        run: |
+          pip-audit -r requirements.txt
+
+  security:
+    runs-on: ubuntu-latest
+    name: 🔐 Security Scan
+    needs: audit
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install bandit
+        run: |
+          pip install bandit
+
+      - name: Run Bandit security scan
+        run: |
+          bandit -r app.py
+
+  deploy:
+    runs-on: ubuntu-latest
+    name: 🚀 Simulated Deployment
+    needs: security
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Simulate deployment
+        run: |
+          echo "Deploying to production..."
+          sleep 3
+          echo "✅ Deployment successful!"
